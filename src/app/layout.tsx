@@ -4,13 +4,13 @@ import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
-const TITLE = 'draw fast • tldraw'
+const TITLE = 'playing with pencil • tldraw'
 const DESCRIPTION = 'Draw a picture (fast)'
-const TWITTER_HANDLE = '@tldraw'
+const TWITTER_HANDLE = '@playingwithpencil'
 const TWITTER_CARD = 'social-twitter.png'
 const FACEBOOK_CARD = 'social-og.png'
 const THEME_COLOR = '#FFFFFF'
-const SITE_URL = 'https://drawfast.tldraw.com'
+const SITE_URL = 'https://playingwithpencil.art'
 
 export const metadata: Metadata = {
 	metadataBase: new URL(SITE_URL),
