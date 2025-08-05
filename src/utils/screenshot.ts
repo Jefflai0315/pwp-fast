@@ -1,11 +1,17 @@
 import { type } from 'os'
 
-const fileReader = new FileReader()
+// Check if we're on the client side
+const isClient = typeof window !== 'undefined'
 
 let _canvas: HTMLCanvasElement | null = null
 let _ctx: CanvasRenderingContext2D | null = null
 
 async function fastGetSvgAsString(svg: SVGElement) {
+	if (!isClient) {
+		throw new Error('fastGetSvgAsString can only be called on the client side')
+	}
+
+	const fileReader = new FileReader()
 	const clone = svg.cloneNode(true) as SVGGraphicsElement
 
 	svg.setAttribute('width', +svg.getAttribute('width')! + '')
@@ -45,6 +51,10 @@ export async function fastGetSvgAsImage(
 		height: number
 	}
 ) {
+	if (!isClient) {
+		throw new Error('fastGetSvgAsImage can only be called on the client side')
+	}
+
 	const svgUrl = URL.createObjectURL(new Blob([svgString], { type: 'image/svg+xml' }))
 
 	if (!_canvas) {
