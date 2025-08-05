@@ -5,7 +5,7 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 const TITLE = 'draw fast • tldraw'
-const DESCRIPTION = 'Draw a picture (fast) with tldraw'
+const DESCRIPTION = 'Draw a picture (fast)'
 const TWITTER_HANDLE = '@tldraw'
 const TWITTER_CARD = 'social-twitter.png'
 const FACEBOOK_CARD = 'social-og.png'
