@@ -30,14 +30,41 @@ export function CameraProvider({ children }: { children: React.ReactNode }) {
 		setCameraState((prev) => ({ ...prev, isLoading: true, error: null }))
 
 		try {
-			const stream = await navigator.mediaDevices.getUserMedia({
+			// On mobile, camera only works over HTTPS (or localhost). Guard early with a clear message.
+			if (typeof window !== 'undefined') {
+				const isLocalhost = /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)
+				if (!window.isSecureContext && !isLocalhost) {
+					setCameraState({
+						isActive: false,
+						stream: null,
+						error:
+							'Camera requires HTTPS on mobile. Use HTTPS (e.g. ngrok) or open from localhost.',
+						isLoading: false,
+					})
+					return
+				}
+			}
+
+			// Try rear camera first; fall back to default if not available
+			let stream: MediaStream | null = null
+			const primaryConstraints: MediaStreamConstraints = {
 				video: {
+					facingMode: 'environment',
 					width: { ideal: 1280 },
 					height: { ideal: 720 },
-					facingMode: 'environment', // Use back camera on mobile
 				},
 				audio: false,
-			})
+			}
+			const fallbackConstraints: MediaStreamConstraints = {
+				video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+				audio: false,
+			}
+
+			try {
+				stream = await navigator.mediaDevices.getUserMedia(primaryConstraints)
+			} catch {
+				stream = await navigator.mediaDevices.getUserMedia(fallbackConstraints)
+			}
 
 			setCameraState({
 				isActive: true,
