@@ -142,6 +142,7 @@ export function useLiveImage(
 			prevPrompt = frame.props.name
 
 			try {
+				// Only capture user drawings, not camera overlay or other UI elements
 				const svgStringResult = await editor.getSvgString([...shapes], {
 					background: true,
 					padding: 0,
@@ -273,11 +274,17 @@ function getShapesTouching(shapeId: TLShapeId, editor: Editor) {
 	const shapesTouching: TLShape[] = []
 	const targetBounds = editor.getShapePageBounds(shapeId)
 	if (!targetBounds) return shapesTouching
+
 	for (const id of [...shapeIdsOnPage]) {
 		if (id === shapeId) continue
+
+		const shape = editor.getShape(id)!
 		const bounds = editor.getShapePageBounds(id)!
-		if (bounds.collides(targetBounds)) {
-			shapesTouching.push(editor.getShape(id)!)
+
+		// Only include shapes that are actually user drawings (children of the frame)
+		// This excludes camera overlays and other non-drawing elements
+		if (bounds.collides(targetBounds) && shape.parentId === shapeId) {
+			shapesTouching.push(shape)
 		}
 	}
 	return shapesTouching

@@ -21,6 +21,7 @@ import {
 } from '@tldraw/tldraw'
 
 import { useLiveImage } from '@/hooks/useLiveImage'
+import { CameraOverlay, useCamera } from './CameraOverlay'
 import { FrameHeading } from './FrameHeading'
 
 // See https://www.fal.ai/models/latent-consistency-sd
@@ -53,6 +54,7 @@ export type LiveImageShape = TLBaseShape<
 		h: number
 		name: string
 		overlayResult?: boolean
+		cameraEnabled?: boolean
 	}
 >
 
@@ -68,6 +70,7 @@ export class LiveImageShapeUtil extends ShapeUtil<LiveImageShape> {
 			w: 512,
 			h: 512,
 			name: '',
+			cameraEnabled: false,
 		}
 	}
 
@@ -151,6 +154,7 @@ export class LiveImageShapeUtil extends ShapeUtil<LiveImageShape> {
 
 	override component(shape: LiveImageShape) {
 		const editor = useEditor()
+		const camera = useCamera()
 
 		useLiveImage(shape.id)
 
@@ -171,6 +175,18 @@ export class LiveImageShapeUtil extends ShapeUtil<LiveImageShape> {
 						stroke={theme.text}
 					/>
 				</SVGContainer>
+
+				{/* Camera overlay as background */}
+				{shape.props.cameraEnabled && (
+					<CameraOverlay
+						shapeId={shape.id}
+						width={shape.props.w}
+						height={shape.props.h}
+						isVisible={shape.props.cameraEnabled}
+						opacity={0.7}
+					/>
+				)}
+
 				<FrameHeading
 					id={shape.id}
 					name={shape.props.name}
@@ -191,6 +207,55 @@ export class LiveImageShapeUtil extends ShapeUtil<LiveImageShape> {
 						}}
 					/>
 				)}
+
+				{/* Camera toggle button */}
+				<TldrawUiButton
+					type="icon"
+					style={{
+						position: 'absolute',
+						top: -40,
+						right: 10,
+						pointerEvents: 'auto',
+						transform: 'scale(var(--tl-scale))',
+						transformOrigin: '0 4px',
+						backgroundColor: shape.props.cameraEnabled
+							? 'var(--color-accent)'
+							: 'var(--color-panel)',
+						border: shape.props.cameraEnabled
+							? '2px solid var(--color-accent)'
+							: '1px solid var(--color-border)',
+						minWidth: '32px',
+						minHeight: '32px',
+						zIndex: 1000,
+					}}
+					onPointerDown={(e) => {
+						e.stopPropagation()
+					}}
+					onClick={async (e) => {
+						e.stopPropagation()
+
+						try {
+							if (!shape.props.cameraEnabled) {
+								await camera.startCamera()
+							} else {
+								camera.stopCamera()
+							}
+
+							editor.updateShape<LiveImageShape>({
+								id: shape.id,
+								type: 'live-image',
+								props: { cameraEnabled: !shape.props.cameraEnabled },
+							})
+						} catch (error) {
+							console.error('Error toggling camera:', error)
+						}
+					}}
+					title={shape.props.cameraEnabled ? 'Disable Camera' : 'Enable Camera'}
+				>
+					<TldrawUiButtonIcon icon={shape.props.cameraEnabled ? 'video' : 'video-off'} />
+				</TldrawUiButton>
+
+				{/* Existing overlay toggle button */}
 				<TldrawUiButton
 					type="icon"
 					style={{

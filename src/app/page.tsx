@@ -3,6 +3,7 @@
 
 import { LiveImageShape, LiveImageShapeUtil } from '@/components/LiveImageShapeUtil'
 import { LiveImageTool, MakeLiveButton } from '@/components/LiveImageTool'
+import { CameraProvider } from '@/hooks/useCamera'
 import { LiveImageProvider } from '@/hooks/useLiveImage'
 import * as fal from '@fal-ai/serverless-client'
 import {
@@ -51,6 +52,35 @@ const overrides: TLUiOverrides = {
 	// },
 }
 
+// Array of custom prompts to randomly choose from
+const customPrompts = [
+	'A beautiful sunset over mountains',
+	'A cozy cottage in a magical forest',
+	'A futuristic city skyline at night',
+	'A serene lake with floating lotus flowers',
+	'A steampunk airship flying through clouds',
+	'A mystical castle on a floating island',
+	'A vibrant underwater coral reef',
+	'A person performing a gymnastics move',
+	'A space station orbiting Earth',
+	'A medieval village with cobblestone streets',
+]
+
+// Function to get a random prompt
+function getRandomPrompt(): string {
+	return customPrompts[Math.floor(Math.random() * customPrompts.length)]
+}
+
+// Function to get default prompt (can be overridden by environment variable)
+function getDefaultPrompt(): string {
+	// Check if environment variable is set (for production customization)
+	if (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_DEFAULT_PROMPT) {
+		return process.env.NEXT_PUBLIC_DEFAULT_PROMPT
+	}
+	// Fallback to random prompt
+	return getRandomPrompt()
+}
+
 const shapeUtils = [LiveImageShapeUtil]
 const tools = [LiveImageTool]
 
@@ -75,7 +105,8 @@ export default function Home() {
 				props: {
 					w: 512,
 					h: 512,
-					name: '',
+					name: getDefaultPrompt(), // Custom default prompt
+					cameraEnabled: false,
 				},
 			})
 		}
@@ -84,25 +115,27 @@ export default function Home() {
 	}
 
 	return (
-		<LiveImageProvider appId="110602490-lcm-sd15-i2i">
-			<main className="tldraw-wrapper">
-				<div className="tldraw-wrapper__inner">
-					<Tldraw
-						persistenceKey="draw-fast"
-						onMount={onEditorMount}
-						shapeUtils={shapeUtils}
-						tools={tools}
-						components={{
-							SharePanel: MakeLiveButton,
-						}}
-						overrides={overrides}
-					>
-						<SneakySideEffects />
-						<LiveImageAssets />
-					</Tldraw>
-				</div>
-			</main>
-		</LiveImageProvider>
+		<CameraProvider>
+			<LiveImageProvider appId="110602490-lcm-sd15-i2i">
+				<main className="tldraw-wrapper">
+					<div className="tldraw-wrapper__inner">
+						<Tldraw
+							persistenceKey="draw-fast"
+							onMount={onEditorMount}
+							shapeUtils={shapeUtils}
+							tools={tools}
+							components={{
+								SharePanel: MakeLiveButton,
+							}}
+							overrides={overrides}
+						>
+							<SneakySideEffects />
+							<LiveImageAssets />
+						</Tldraw>
+					</div>
+				</main>
+			</LiveImageProvider>
+		</CameraProvider>
 	)
 }
 
